@@ -1,3 +1,70 @@
+## My Submission - Owen Freeman (Freelo)
+
+**Result:** Top 64 qualifier (45th), 21st in finals - Fullhouse Hackathon 2026, sponsored by Quadrature Capital, Jane Street, Five Rings, Teza Technologies, QRT, Jump Trading, Da Vinci and Susquehanna.
+
+---
+
+### Bot Code
+
+My final submission can be found in [`bots/mybot/bot.py`](bots/mybot/bot.py).
+
+---
+
+### Qualifier 1 - Obot (186th)
+
+Initial strategy focused on equity calculation and opponent modelling but suffered from a critical flaw: a 28% call rate (winning bots average ~8%). The bot was overcalling with medium hands and losing chips consistently across streets.
+
+Other issues:
+- Postflop thresholds too loose - calling down to showdown with marginal equity
+- No blind steal logic
+- 3-bet detection bug causing incorrect responses to re-raises
+
+---
+
+### Qualifier 2 & Finals - Freelo (45th, 21st in finals)
+
+Rebuilt from scratch using hand history analysis across 48 real match files. Key findings:
+
+- Winning bots: fold ~50%, call ~8%, raise ~23%, check ~17%
+- My Q1 bot: fold ~34%, call ~28%, raise ~16%, check ~22%
+- 345 of Obots big losses occurred on the river - calling down too much
+
+**Changes made:**
+- Drastically reduced call rate - fold medium hands to any real bet
+- Added BTN/CO steal logic (34.5% of all hands won preflop via folds)
+- Fixed 3-bet detection
+- Tightened postflop thresholds - raise or fold, almost never call
+- Added SPR awareness for short-stack commitment decisions
+- Opponent model classifies maniac/fish/nit and adjusts sizing accordingly
+
+**The same bot ran in both Q2 and the finals.**
+
+---
+
+### Strategy
+
+**Preflop:** Tight range-based decisions using hardcoded premium/strong/playable hand categories. Raises strong hands always, steals from late position with any two cards when folded to, defends BB cheaply. Detects maniacs via bet sizing and fold frequency, adjusting to trap rather than re-raise.
+
+**Postflop:** Monte Carlo equity via eval7 (500 sims, ~10ms per decision). Three tiers:
+- Strong equity (>62% HU): bet/raise for value  
+- Medium equity (45-62%): bet in position, check out of position, fold to bets
+- Weak: c-bet flop in position, fold to pressure
+
+**Opponent modelling:** Tracks fold frequency, aggression factor and raise count per seat across the match. Classifies opponents as maniac/fish/nit and adjusts sizing and thresholds accordingly. Resets on new match detection via hand ID prefix.
+
+---
+
+### What I'd Do Differently
+
+Given more time, the main improvements I'd explore:
+
+- **Pre-computed CFR blueprint** - A game theory optimal solution trained offline and loaded at import time. This is the single biggest edge available and what separates the top bots from equity-based approaches.
+- **Better postflop equity** - replace Monte Carlo with preflop lookup tables and postflop hand strength abstraction for faster, more accurate decisions within the 2s limit.
+- **Range-based thinking** - rather than estimating equity vs random hands, model opponent ranges based on their preflop actions and narrow them street by street.
+- **Exploitative adjustments** - the opponent model tracks broad tendencies but doesn't fully exploit specific patterns like bet sizing tells or positional tendencies.
+
+---
+
 # Fullhouse Engine
 
 > The UK's first quantitative poker bot competition — 1-5 June 2026, London
